@@ -1,0 +1,65 @@
+.section ".data"
+
+
+palabra: .asciiz "mayonesa"
+
+.section ".text"
+
+    addi $sp, $zero, 0xFFC     
+    addi $s3, $zero, -0x100    
+
+    orh  $a0, $zero, .hi16 palabra
+    ori  $a0, $a0, .lo16 palabra
+    addi $a1, $zero, 3         
+    jal  eliminar_letra
+
+    
+    orh  $a0, $zero, .hi16 palabra
+    ori  $a0, $a0, .lo16 palabra
+    jal  imprimir_string
+
+    trap 1                     
+
+
+eliminar_letra:
+    addi $sp, $sp, -8
+    sw   $s0, 0($sp)           
+    sw   $s1, 4($sp)           
+
+    add  $s0, $a0, $a1         
+    addi $s1, $s0, 1           
+
+eliminar_bucle:
+    lbu  $t0, 0($s1)           
+    sb   $t0, 0($s0)           
+    addi $s0, $s0, 1
+    addi $s1, $s1, 1
+    bne  $t0, $zero, eliminar_bucle   
+
+    lw   $s0, 0($sp)
+    lw   $s1, 4($sp)
+    addi $sp, $sp, 8
+    jr   $ra, 0
+
+
+imprimir_string:
+    addi $sp, $sp, -4
+    sw   $s0, 0($sp)
+    addi $s0, $a0, 0
+
+imprimir_string.bucle:
+    lbu  $t0, 0($s0)
+    beq  $t0, $zero, imprimir_string.salir
+    sb   $t0, 0($s3)
+    addi $s0, $s0, 1
+    j    imprimir_string.bucle
+imprimir_string.salir:
+
+    addi $t0, $zero, '\r'
+    sb   $t0, 0($s3)
+    addi $t0, $zero, '\n'
+    sb   $t0, 0($s3)
+
+    lw   $s0, 0($sp)
+    addi $sp, $sp, 4
+    jr   $ra, 0
